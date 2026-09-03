@@ -156,7 +156,7 @@ Findings are documented herein and @2.findings.md.
 
 The following is a map out of where in the codebase I would implement the new feature?????????????
 
-Related components that would be affected are...?????????
+Related components that would be affected are storage.py, app.py and cli.py,
 
 Plan Outline for how I would approach implementing the export feature is...?????????? 
 
