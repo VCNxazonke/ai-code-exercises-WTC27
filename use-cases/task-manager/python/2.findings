@@ -1,0 +1,73 @@
+#INSTRUCTION TO AGENT:#
+
+DO NOT TOUCH THIS FILE.
+
+RATHER CREATE A NEW FILE IF NEED BE.
+
+THIS FILE IS ONLY FOR REFERENCE AND GUIDANCE.
+
+#####################################################
+
+# Submission: Exercise - Knowing Where to Start
+
+**Project:** Python Task Manager Application  
+**Repository:** `ai-code-exercises-WTC27/use-cases/task-manager/python`  
+
+---
+
+## 1. Executive Summary & Codebase Architecture
+
+After reviewing the Python Task Manager application, the codebase follows a clean, decoupled **Layered Architecture** without external third-party dependencies.
+
+```
++-------------------------------------------------------+
+|                    CLI Layer                          |
+|                   (cli.py)                            |
++-------------------------------------------------------+
+                           |
+                           v
++-------------------------------------------------------+
+|                 Controller/Service Layer              |
+|                    (app.py)                           |
++-------------------------------------------------------+
+                           |
+                           v
++-------------------------------------------------------+
+|                Data Storage / DAO Layer               |
+|                   (storage.py)                        |
++-------------------------------------------------------+
+                           |
+                           v
++-------------------------------------------------------+
+|                  Domain Model Layer                   |
+|                   (models.py)                         |
++-------------------------------------------------------+
+```
+
+---
+
+### Initial vs. Final Observations and Understanding
+* **Initial Observation**: Expected a typical web frame/Flask/FastAPI setup or complex relational database setup (SQLite/SQLAlchemy).
+* **Final Analysis**: The project is a lightweight, zero-dependency Python CLI tool storing tasks in a flat JSON file (`tasks.json`).
+
+---
+
+### The most valuable insights gained from each prompt are as follows: 
+* a. The "Understanding Project Structure and Technology Stack" prompt was useful to understand the codebase structure, architecture, and technology stack.
+* b. The "Finding Feature Implementation Locations" prompt was  useful to understand existing features locations within the codebase and how they are implemented and where to implement the new feature.
+* c. The "Understanding Domain Models and Business Concepts" prompt was useful to understand the business logic of the application.
+
+---
+
+### Approach to implementing the new business rule
+* Approach to implementing the new business rule was to use the prompts to understand the codebase structure, architecture, and technology stack and then use the prompts to understand where and how to implement the new feature.
+
+---
+
+### Strategies noted for approaching unfamiliar code in the future
+* a. Map Entry Points & Boundaries: Identify where input enters (CLI/API) and where state persists (JSON/Database).
+* b. Follow Data Flows: Trace how domain models travel from storage to display.
+* c. Isolate Domain Rules: Locate core business logic (in model classes) vs infrastructure logic (JSON encoders, CLI argument parsers).
+* d. Leverage AI Prompts: Use structured prompts for project overview, feature tracing, and domain model mapping before making code changes.
+
+---

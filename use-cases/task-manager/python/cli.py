@@ -9,7 +9,8 @@ def format_task(task):
         TaskStatus.TODO: "[ ]",
         TaskStatus.IN_PROGRESS: "[>]",
         TaskStatus.REVIEW: "[?]",
-        TaskStatus.DONE: "[✓]"
+        TaskStatus.DONE: "[✓]",
+        TaskStatus.ABANDONED: "[X]"
     }
 
     priority_symbol = {
@@ -43,14 +44,14 @@ def main():
 
     # List tasks command
     list_parser = subparsers.add_parser("list", help="List all tasks")
-    list_parser.add_argument("-s", "--status", help="Filter by status", choices=["todo", "in_progress", "review", "done"])
+    list_parser.add_argument("-s", "--status", help="Filter by status", choices=["todo", "in_progress", "review", "done", "abandoned"])
     list_parser.add_argument("-p", "--priority", help="Filter by priority", type=int, choices=[1, 2, 3, 4])
     list_parser.add_argument("-o", "--overdue", help="Show only overdue tasks", action="store_true")
 
     # Update task commands
     update_status_parser = subparsers.add_parser("status", help="Update task status")
     update_status_parser.add_argument("task_id", help="Task ID")
-    update_status_parser.add_argument("status", help="New status", choices=["todo", "in_progress", "review", "done"])
+    update_status_parser.add_argument("status", help="New status", choices=["todo", "in_progress", "review", "done", "abandoned"])
 
     update_priority_parser = subparsers.add_parser("priority", help="Update task priority")
     update_priority_parser.add_argument("task_id", help="Task ID")
@@ -68,6 +69,15 @@ def main():
     remove_tag_parser = subparsers.add_parser("untag", help="Remove tag from task")
     remove_tag_parser.add_argument("task_id", help="Task ID")
     remove_tag_parser.add_argument("tag", help="Tag to remove")
+
+    # Export & Cleanup commands
+    export_parser = subparsers.add_parser("export", help="Export tasks to CSV file")
+    export_parser.add_argument("-o", "--output", help="CSV output filepath", default="tasks_export.csv")
+    export_parser.add_argument("-s", "--status", help="Filter by status", choices=["todo", "in_progress", "review", "done", "abandoned"])
+    export_parser.add_argument("-p", "--priority", help="Filter by priority", type=int, choices=[1, 2, 3, 4])
+
+    cleanup_parser = subparsers.add_parser("cleanup", help="Automatically mark overdue tasks (>7 days) as abandoned")
+    cleanup_parser.add_argument("-d", "--days", help="Number of days overdue threshold (default 7)", type=int, default=7)
 
     # Other commands
     show_parser = subparsers.add_parser("show", help="Show task details")
@@ -132,6 +142,16 @@ def main():
         else:
             print("Failed to remove tag. Task or tag not found.")
 
+    elif args.command == "export":
+        if task_manager.export_tasks(args.output, args.status, args.priority):
+            print(f"Successfully exported tasks to {args.output}")
+        else:
+            print("Failed to export tasks.")
+
+    elif args.command == "cleanup":
+        count = task_manager.process_abandoned_tasks(days_overdue=args.days)
+        print(f"Cleanup complete. {count} task(s) marked as abandoned.")
+
     elif args.command == "show":
         task = task_manager.get_task_details(args.task_id)
         if task:
@@ -161,4 +181,4 @@ def main():
         parser.print_help()
 
 if __name__ == "__main__":
-    main()
+    main()

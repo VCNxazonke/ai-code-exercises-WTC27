@@ -115,3 +115,22 @@ class TaskManager:
             "completed_last_week": completed_recently
         }
 
+    def process_abandoned_tasks(self, days_overdue=7):
+        """Scans all tasks and automatically marks tasks overdue for more than days_overdue as ABANDONED, unless HIGH or URGENT priority."""
+        tasks = self.storage.get_all_tasks()
+        count = 0
+        for task in tasks:
+            if task.should_be_abandoned(days_overdue):
+                task.status = TaskStatus.ABANDONED
+                task.updated_at = datetime.now()
+                count += 1
+        if count > 0:
+            self.storage.save()
+        return count
+
+    def export_tasks(self, filepath, status_filter=None, priority_filter=None):
+        """Exports tasks filtered by status/priority to CSV file."""
+        tasks = self.list_tasks(status_filter=status_filter, priority_filter=priority_filter)
+        return self.storage.export_to_csv(filepath, tasks)
+
+

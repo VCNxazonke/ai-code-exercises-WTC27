@@ -1,4 +1,5 @@
 # task_manager/storage.py
+import csv
 import json
 import os
 from datetime import datetime
@@ -98,4 +99,34 @@ class TaskStorage:
 
     def get_overdue_tasks(self):
         return [task for task in self.tasks.values() if task.is_overdue()]
+
+    def export_to_csv(self, filepath, tasks=None):
+        """Exports given tasks (or all tasks) to a CSV file."""
+        if tasks is None:
+            tasks = self.get_all_tasks()
+
+        fieldnames = ['id', 'title', 'description', 'priority', 'status', 'created_at', 'updated_at', 'due_date', 'completed_at', 'tags']
+
+        try:
+            with open(filepath, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
+                for task in tasks:
+                    writer.writerow({
+                        'id': task.id,
+                        'title': task.title,
+                        'description': task.description,
+                        'priority': task.priority.name,
+                        'status': task.status.value,
+                        'created_at': task.created_at.isoformat() if task.created_at else '',
+                        'updated_at': task.updated_at.isoformat() if task.updated_at else '',
+                        'due_date': task.due_date.isoformat() if task.due_date else '',
+                        'completed_at': task.completed_at.isoformat() if task.completed_at else '',
+                        'tags': ','.join(task.tags) if task.tags else ''
+                    })
+            return True
+        except Exception as e:
+            print(f"Error exporting tasks to CSV: {e}")
+            return False
+
 
