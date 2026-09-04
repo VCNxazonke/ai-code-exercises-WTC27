@@ -54,7 +54,9 @@ After reviewing the Python Task Manager application, the codebase follows a clea
 
 ### The most valuable insights gained from each prompt are as follows: 
 * a. The "Understanding Project Structure and Technology Stack" prompt was useful to understand the codebase structure, architecture, and technology stack.
+
 * b. The "Finding Feature Implementation Locations" prompt was  useful to understand existing features locations within the codebase and how they are implemented and where to implement the new feature.
+
 * c. The "Understanding Domain Models and Business Concepts" prompt was useful to understand the business logic of the application.
 
 ---

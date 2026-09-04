@@ -1,0 +1,103 @@
+**Setup**
+1. I fork and cloned the applicable repo for the Python language:
+
+Python: WTC Github - Python Task Manager
+
+
+2. I reviewed the basic structure of the code without trying to understand everything yet.
+
+I identify the main files and what they might do based on names as follows: 
+THere are 5 main files named as follows:
+1. Based on the file names, my guess they would work as follows:
+1.1 Task.py: this file is related to the Task class which is the main class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks..
+1.2 storage.py: this file is related to the storage class which is the main class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
+1.3 app.py: this file is related to the app class which is the main class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
+1.4 cli.py: this file is related to the cli class which is the main class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
+1.5 main.py: this file is related to the main class which is the main class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
+
+3. Created a new document called "Code Understanding Journal (named 2.Exercise_2-Code_Understanding_Journal)" where I recorded my findings.
+
+**Exercise Part 1: Understanding a Specific Feature**
+
+In this part, use the "Prompt 1: Understand how a specific feature works" prompt to understand how task creation and status updates work.
+
+1. Identify the files related to task creation and status updates
+
+2. Copy relevant code snippets into your prompt
+
+3. Use the prompt template to ask the AI to explain this feature
+
+4. Record in your journal:
+
+4.1. The main components involved in task creation/updates
+
+4.2. The execution flow when a task is created/updated
+
+4.3. How data is stored and retrieved
+
+4.4. Any interesting design patterns you discovered
+
+**Exercise Part 2: Deepen Understanding Through Guided Questions**
+
+In this part, use the "Prompt 2: Deepen understanding of a codebase" prompt to explore the task prioritization system.
+
+1. Read through the code to form an initial understanding of how task priorities work
+
+2. Use the prompt template to share your understanding with the AI and get guided questions
+
+3. Answer those questions by examining the code further
+
+4. Record in your journal:
+
+4.1. Your initial understanding vs. what you discovered
+
+4.2. The key insights the guided questions helped you uncover
+
+4.3. Any misconceptions you had that were clarified
+
+**Exercise Part 3: Mapping Data Flow**
+
+In this part, use the "Prompt 3: Mapping Data Flow and State Management" prompt to understand how data flows through the application when a task is marked as complete.
+
+1. Identify the entry points and components involved when marking a task as complete
+
+2. Find code that handles state changes for task completion
+
+3. Use the prompt template to ask the AI to help map the complete data flow
+
+4. Record in your journal:
+
+4.1. A diagram of the data flow (can be hand-drawn or digital)
+
+4.2. The state changes that occur during task completion
+
+4.3. Potential points of failure in this process
+
+4.4. How the application persists these changes
+
+**Exercise Part 4: Reflection and Presentation**
+1. Review your journal and consolidate your understanding
+2. Prepare a 3-5 minute presentation that includes:
+2.1. A high-level overview of the application architecture
+2.2. How the three key features work (task creation, prioritization, and completion)
+2.3. One interesting design pattern or approach you discovered
+2.4. What you found most challenging to understand and how the prompts helped
+
+3. Share your presentation with the group, focusing on your process for gaining understanding rather than just explaining the code
+
+**Tips for Success**
+1. Focus on understanding, not critiquing or improving the code
+2. Use precise, specific questions in your prompts
+3. Include enough code context for the AI to give meaningful responses
+4. Document your process, including false starts or misconceptions
+5. Draw diagrams to help visualize relationships between components
+6. Use the AI to validate your understanding, not just to explain the code
+
+**Expected Outcomes**
+By the end of this exercise, you should be able to:
+
+1. Explain how the task manager application works at a high level
+2. Describe the data flow for key features
+3. Understand how the code organizes and manages state
+4. Demonstrate effective use of AI prompts to understand unfamiliar code
+5. Identify which prompt strategies work best for different understanding needs
