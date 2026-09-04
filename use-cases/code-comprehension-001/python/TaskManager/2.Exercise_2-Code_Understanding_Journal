@@ -1,3 +1,13 @@
+########################################################
+Code Understanding Journal
+
+INSTRUCTIONS TO AI AGENT: PLEASE DO NOT TOUCH THIS FILE.
+
+USE FILE AS A GUIDE AND CREATE NEW DOCUMENT IF NEED BE.
+
+##################################################################
+
+
 **Setup**
 1. I fork and cloned the applicable repo for the Python language:
 
@@ -7,19 +17,23 @@ Python: WTC Github - Python Task Manager
 2. I reviewed the basic structure of the code without trying to understand everything yet.
 
 I identify the main files and what they might do based on names as follows: 
-THere are 5 main files named as follows:
+THere are 4 main files named as follows:
 1. Based on the file names, my guess they would work as follows:
-1.1 Task.py: this file is related to the Task class which is the main class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks..
-1.2 storage.py: this file is related to the storage class which is the main class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
-1.3 app.py: this file is related to the app class which is the main class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
-1.4 cli.py: this file is related to the cli class which is the main class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
-1.5 main.py: this file is related to the main class which is the main class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
+1.1 cli.py: this file is related to the command line interface part of the application. It defines functions that formats tasks based on their priority and helps parsing commands and strings to and from the terminal. It also lists all tasks and their tags.
 
-3. Created a new document called "Code Understanding Journal (named 2.Exercise_2-Code_Understanding_Journal)" where I recorded my findings.
+1.2.models.py: this file is related to the Task (Priority, Status) class of the application. It is used to create, update, delete, and get tasks (CRUD). It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks. It defines four main functions, task creation, to update, mark as done and mark as over due.
+
+1.3 storage.py: this file is related to the storage class of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
+
+1.4 task_manager.py: this file is related to the task management portion of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
+
+
+
+3. Created a new document called "Code Understanding Journal (named 2.Exercise_2-Code_Understanding_Journal)" where I herein record my findings.
 
 **Exercise Part 1: Understanding a Specific Feature**
 
-In this part, use the "Prompt 1: Understand how a specific feature works" prompt to understand how task creation and status updates work.
+In this part, used the "Prompt 1: Understand how a specific feature works" prompt to understand how task creation and status updates work.
 
 1. Identify the files related to task creation and status updates
 
@@ -27,39 +41,94 @@ In this part, use the "Prompt 1: Understand how a specific feature works" prompt
 
 3. Use the prompt template to ask the AI to explain this feature
 
-4. Record in your journal:
+4. Record in journal is as follows:
 
-4.1. The main components involved in task creation/updates
+4.1. The main components involved in task creation/updates are:
 
-4.2. The execution flow when a task is created/updated
+- `cli.py`: defines the `create`, `status`, `priority`, and `due` commands.
+- `task_manager.py`: parses dates, converts numeric values to enums, and coordinates storage.
+- `models.py`: constructs a `Task`, assigns defaults, and applies state changes.
+- `storage.py`: stores tasks in memory and serializes them to JSON.
 
-4.3. How data is stored and retrieved
+4.2. The execution flow when a task is created/updated is as follows:
 
-4.4. Any interesting design patterns you discovered
+Task Creation Flow
+1. The user runs `python cli.py create "Task title"`.
+2. `cli.main()` parses the command-line arguments.
+3. Comma-separated tags are converted into a list.
+4. `TaskManager.create_task()` converts the priority integer into `TaskPriority`.
+5. If a due date is supplied, it is parsed using `%Y-%m-%d`.
+6. A `Task` is created. Its default status is `TODO`; timestamps are initialized; `completed_at` is `None`.
+7. `TaskStorage.add_task()` inserts the task into its dictionary using the generated UUID.
+8. `TaskStorage.save()` writes all tasks to `tasks.json`.
+9. The task ID is returned and printed by the CLI.
 
+Task Update Flow
+Since a task is maily updated on the status, for a status other than `done`, `TaskManager.update_task_status()` calls `TaskStorage.update_task()`. The storage object finds the task, calls `Task.update(status=...)`, updates `updated_at`, and saves the JSON file.
+For `done`, the path is deliberately different:
+1. The manager retrieves the task with `get_task()`.
+2. If it exists, `Task.mark_as_done()` sets `status` to `DONE`.
+3. It sets `completed_at` and `updated_at` to the current time.
+4. The manager calls `storage.save()`.
+5. The CLI reports success.
+
+
+4.3. Data Storage and Retrieval
+
+`TaskStorage` loads the JSON file when it is constructed. `TaskDecoder` rebuilds `Task` objects, converts stored priority and status values back to enums, and converts ISO timestamp strings back to `datetime` objects. On save, `TaskEncoder` performs the reverse conversion.
+
+The in-memory structure is a dictionary keyed by task ID. Query methods return lists filtered by status, priority, or `Task.is_overdue()`.
+
+4.4. Interesting design patterns that were discovered were: 
+- **Layered separation:** CLI, application coordination, domain model, and persistence have distinct responsibilities.
+- **Enum-backed values:** statuses and priorities have stable values while avoiding arbitrary strings throughout the code.
+- **Encoder/decoder boundary:** JSON conversion is isolated in `TaskEncoder` and `TaskDecoder`.
+- **Repository-like storage object:** `TaskStorage` hides the dictionary and file operations from `TaskManager`.
+- **UUID identity:** each task receives a unique string ID at construction time.
+
+
+########################################################################################################################################################
 **Exercise Part 2: Deepen Understanding Through Guided Questions**
+########################################################################################################################################################
 
-In this part, use the "Prompt 2: Deepen understanding of a codebase" prompt to explore the task prioritization system.
+In this part, used the "Prompt 2: Deepen understanding of a codebase" prompt to explore the task prioritization system.
 
-1. Read through the code to form an initial understanding of how task priorities work
+1. Read through the code to form an initial understanding of how task priorities work.
 
-2. Use the prompt template to share your understanding with the AI and get guided questions
+2. Used the prompt template to share understanding with the AI and get guided questions.
 
-3. Answer those questions by examining the code further
+3. Answered questions by examining the code further.
 
-4. Record in your journal:
+4. Record in journal as follows:
 
-4.1. Your initial understanding vs. what you discovered
+4.1. Initial understanding vs. Discovery
+IInitially thought priority was just an integer attached to a task. The code shows that it is represented by `TaskPriority`, whose values are ordered conceptually from `LOW = 1` through `URGENT = 4`. The CLI accepts integers, but the manager converts them to enum members before storing them.
 
-4.2. The key insights the guided questions helped you uncover
+4.2. The key insights the guided questions helped me uncover were that:
+- There was not enough understanding of the code from my initial reading
+- A lot of misconceptions exist on the code's functionality
+- There are always more questions to ask about the code and its functionality
 
-4.3. Any misconceptions you had that were clarified
+4.3. Misconceptions that were had and clarified are:
+- A higher numeric value does not automatically make a task appear first.
+- Priority is not used by `is_overdue()`; overdue status depends on due date and whether the task is done.
+- The storage file contains numeric priority values because the encoder writes `obj.priority.value`, not the enum name.
 
+
+
+########################################################################################################################################################
 **Exercise Part 3: Mapping Data Flow**
+########################################################################################################################################################
 
-In this part, use the "Prompt 3: Mapping Data Flow and State Management" prompt to understand how data flows through the application when a task is marked as complete.
+In this part, used the "Prompt 3: Mapping Data Flow and State Management" prompt to understand how data flows through the application when a task is marked as complete.
 
-1. Identify the entry points and components involved when marking a task as complete
+1. Identify the entry points and components involved when marking a task as complete as the normal entry point:
+
+```text
+python cli.py status <task_id> done
+```
+
+`cli.py` passes the parsed task ID and status value to `TaskManager.update_task_status()` for task being marked as complete.
 
 2. Find code that handles state changes for task completion
 
@@ -71,13 +140,23 @@ In this part, use the "Prompt 3: Mapping Data Flow and State Management" prompt 
 
 4.2. The state changes that occur during task completion
 
-4.3. Potential points of failure in this process
+4.3. Potential points of failure in this process may be:
+- An invalid status value cannot be converted to `TaskStatus`.
+- A missing task ID causes the completion method to return `False` and does not save.
+- The JSON file may be missing, malformed, or inaccessible.
+- A file-writing error is caught and printed by `TaskStorage.save()`.
+- A task loaded from JSON with invalid enum or date data may fail during decoding.
+- Completion state exists only in memory if saving fails after `mark_as_done()` changes the object.
 
-4.4. How the application persists these changes
+4.4. The application persists changes as follows: The task remains in the storage dictionary after completion. `save()` serializes the dictionary values as a JSON list. When the application starts again, `load()` and `TaskDecoder` recreate the completed task, including its status and `completed_at` timestamp.
 
+
+########################################################################################################################################################
 **Exercise Part 4: Reflection and Presentation**
-1. Review your journal and consolidate your understanding
-2. Prepare a 3-5 minute presentation that includes:
+########################################################################################################################################################
+
+1. Reviewed journal and consolidated understanding.
+2. Prepared a 3-5 minute presentation that includes:
 2.1. A high-level overview of the application architecture
 2.2. How the three key features work (task creation, prioritization, and completion)
 2.3. One interesting design pattern or approach you discovered
@@ -86,18 +165,17 @@ In this part, use the "Prompt 3: Mapping Data Flow and State Management" prompt 
 3. Share your presentation with the group, focusing on your process for gaining understanding rather than just explaining the code
 
 **Tips for Success**
-1. Focus on understanding, not critiquing or improving the code
-2. Use precise, specific questions in your prompts
-3. Include enough code context for the AI to give meaningful responses
-4. Document your process, including false starts or misconceptions
-5. Draw diagrams to help visualize relationships between components
-6. Use the AI to validate your understanding, not just to explain the code
+1. Focused on understanding, not critiquing or improving the code
+2. Used precise, specific questions in prompts
+3. Included enough code context for the AI to give meaningful responses
+4. Documented process, including false starts or misconceptions
+5. Drew diagrams to help visualize relationships between components
+6. Used the AI to validate your understanding, not just to explain the code
 
-**Expected Outcomes**
-By the end of this exercise, you should be able to:
-
-1. Explain how the task manager application works at a high level
-2. Describe the data flow for key features
-3. Understand how the code organizes and manages state
-4. Demonstrate effective use of AI prompts to understand unfamiliar code
-5. Identify which prompt strategies work best for different understanding needs
+**Outcomes**
+At the end of this exercise, we:
+1. Explained how the task manager application works at a high level.
+2. Described the data flow for key features.
+3. Understood how the code organizes and manages state.
+4. Demonstrated effective use of AI prompts to understand unfamiliar code.
+5. Identified which prompt strategies work best for different understanding needs.
