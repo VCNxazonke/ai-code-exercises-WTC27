@@ -28,10 +28,12 @@ THere are 4 main files named as follows:
 1.4 task_manager.py: this file is related to the task management portion of the application. It is used to create, update, delete, and get tasks. It also has methods to get all tasks, get tasks by status, get tasks by priority, and get overdue tasks.
 
 
-
 3. Created a new document called "Code Understanding Journal (named 2.Exercise_2-Code_Understanding_Journal)" where I herein record my findings.
 
+
+############################################################################################################
 **Exercise Part 1: Understanding a Specific Feature**
+############################################################################################################
 
 In this part, used the "Prompt 1: Understand how a specific feature works" prompt to understand how task creation and status updates work.
 
@@ -39,7 +41,7 @@ In this part, used the "Prompt 1: Understand how a specific feature works" promp
 
 2. Copy relevant code snippets into your prompt
 
-3. Use the prompt template to ask the AI to explain this feature
+3. Used the prompt template to ask the AI to explain the feature.
 
 4. Record in journal is as follows:
 
@@ -87,9 +89,9 @@ The in-memory structure is a dictionary keyed by task ID. Query methods return l
 - **UUID identity:** each task receives a unique string ID at construction time.
 
 
-########################################################################################################################################################
+############################################################################################################
 **Exercise Part 2: Deepen Understanding Through Guided Questions**
-########################################################################################################################################################
+############################################################################################################
 
 In this part, used the "Prompt 2: Deepen understanding of a codebase" prompt to explore the task prioritization system.
 
@@ -115,7 +117,6 @@ IInitially thought priority was just an integer attached to a task. The code sho
 - The storage file contains numeric priority values because the encoder writes `obj.priority.value`, not the enum name.
 
 
-
 ########################################################################################################################################################
 **Exercise Part 3: Mapping Data Flow**
 ########################################################################################################################################################
@@ -128,17 +129,56 @@ In this part, used the "Prompt 3: Mapping Data Flow and State Management" prompt
 python cli.py status <task_id> done
 ```
 
-`cli.py` passes the parsed task ID and status value to `TaskManager.update_task_status()` for task being marked as complete.
+`cli.py` passes the parsed task ID and status value to `TaskManager.update_task_status()` for task being marked as complete in 
 
-2. Find code that handles state changes for task completion
+2. Found the code that handles state changes for task completion in task_manager/app.py. Inside the TaskManager class, the update_task_status method intercepts status updates. If the incoming status value matches the completion status (TaskStatus.DONE), it retrieves the task object and explicitly triggers the object's internal marking method.
 
-3. Use the prompt template to ask the AI to help map the complete data flow
+    def update_task_status(self, task_id, new_status_value):
+        new_status = TaskStatus(new_status_value)
+        if new_status == TaskStatus.DONE:
+            task = self.storage.get_task(task_id)
+            if task:
+                task.mark_as_done()  # <--- Triggers completion logic
+                self.storage.save()
+                return True
+        else:
+            return self.storage.update_task(task_id, status=new_status)
 
-4. Record in your journal:
 
-4.1. A diagram of the data flow (can be hand-drawn or digital)
+3. Used the prompt template to ask the AI to help map the complete data flow.
 
-4.2. The state changes that occur during task completion
+4. Record in journal as follows:
+
+4.1. The following is a digital diagram/flowchart of the data flow:
+```mermaid
+flowchart TD
+    A[CLI status command] --> B[TaskManager.update_task_status]
+    B --> C[Convert value to TaskStatus.DONE]
+    C --> D[TaskStorage.get_task]
+    D -->|task exists| E[Task.mark_as_done]
+    E --> F[status = DONE]
+    E --> G[completed_at = now]
+    E --> H[updated_at = completed_at]
+    F --> I[TaskStorage.save]
+    G --> I
+    H --> I
+    I --> J[TaskEncoder converts task to JSON]
+    J --> K[tasks.json]
+    D -->|task missing| L[Return False]
+```
+4.2. The state changes that occur during task completion are as follows:
+Before completion:
+
+- `status` is normally `TODO`, `IN_PROGRESS`, or `REVIEW`.
+- `completed_at` is `None`.
+- `updated_at` reflects the last change.
+
+After completion:
+
+- `status` becomes `TaskStatus.DONE`.
+- `completed_at` is set to the current datetime.
+- `updated_at` is set to the same completion datetime.
+- The serialized JSON stores the status as `"done"` and the datetime values as ISO strings.
 
 4.3. Potential points of failure in this process may be:
 - An invalid status value cannot be converted to `TaskStatus`.
@@ -160,9 +200,12 @@ python cli.py status <task_id> done
 2.1. A high-level overview of the application architecture
 2.2. How the three key features work (task creation, prioritization, and completion)
 2.3. One interesting design pattern or approach you discovered
-2.4. What you found most challenging to understand and how the prompts helped
+2.4. What I found most challenging to understand and how the prompts helped
 
-3. Share your presentation with the group, focusing on your process for gaining understanding rather than just explaining the code
+3. Shared presentation here: 
+https://notebook.google.com/notebook/1671c78c-3092-460a-9c90-97e0f5dba795/artifact/746942d6-7a74-4626-baae-45f875e58ca9?utm_source=nlm_web_share&utm_medium=google_oo&utm_campaign=art_share_1&utm_content=&utm_smc=nlm_web_share_google_oo_art_share_1_
+
+focusing on process for gaining understanding rather than just explaining the code
 
 **Tips for Success**
 1. Focused on understanding, not critiquing or improving the code
@@ -170,7 +213,7 @@ python cli.py status <task_id> done
 3. Included enough code context for the AI to give meaningful responses
 4. Documented process, including false starts or misconceptions
 5. Drew diagrams to help visualize relationships between components
-6. Used the AI to validate your understanding, not just to explain the code
+6. Used the AI to validate understanding, not just to explain the code
 
 **Outcomes**
 At the end of this exercise, we:
