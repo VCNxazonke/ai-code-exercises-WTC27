@@ -1,1 +1,81 @@
-Selected one of the practical algorithms given in Python i.e:Task priority sorting and filtering algorithmUsed the provided AI prompts from the "Deciphering Complex Functions and Algorithms" section to break down the algorithm.Understanding of the AI explanation (using visual diagrams where it helps) is documented as follows: At its core, this algorithm is an automated triage system. that is the process of sorting and prioritizing tasks based on how urgent or severe they are. Instead of a human manually moving tasks up and down a list, the code looks at five specific traits of a task, translates them into math, and spits out a final "importance score". The higher the score, the higher it sits on your to-do list.This is done as follows: [ Incoming Task ]       ¦       | +---------------+ ¦ BASE PRIORITY ¦ --> Multiply by 10 (e.g., Medium = 20 pts) +---------------+       ¦       | +---------------+ ¦ DUE DATE DDL  ¦ --> Overdue (+35) | Today (+20) | This Week (+10) +---------------+       ¦       | +---------------+ ¦ STATUS CHECK  ¦ --> Is it DONE? (-50 pts) | In REVIEW? (-15 pts) +---------------+       ¦       | +---------------+ ¦ HOT-TAG BOOST ¦ --> Matches "blocker", "critical", "urgent"? (+8 pts) +---------------+       ¦       | +---------------+ ¦ RECENCY CHECK ¦ --> Modified in last 24 hours? (+5 pts) +---------------+       ¦       | [ FINAL INTEGER SCORE ] ---> Sent to Sort & Filter Pipeline (Highest First)Insights and learning points are documented as follows:When one looks closely at the Python implementation, the most impressive engineering choice is the use of the Schwartzian Transform to optimize performance scaling. By caching each task's score in a temporary tuple array before sorting, the system evaluates the complex math exactly once per task. This prevents the sorting engine from wasting CPU cycles on redundant recalculations.The algorithm also showcases a deliberate design bias through geometric weight scaling. Priority scores jump sharply from medium to urgent, ensuring that a task's base tier heavily dominates the final layout. Additionally, the logic uses an elegant Pythonic any() generator expression to scan for high-alert metadata like "blocker" tags, which instantly short-circuits to save processing time.However, a close structural audit reveals a couple of vulnerabilities regarding time tracking and system stability. Polling datetime.now() directly inside the loop introduces a shifting baseline flaw. If the function processes a massive dataset, the time anchor continuously drifts forward, making the sorting non-deterministic. Furthermore, relying on timezone-naïve arithmetic creates a severe crash risk if the database utilizes timezone-aware UTC timestamps.Ultimately, the algorithm masterfully combines ranking and visual filtering into a single equation. By applying a massive 50-point penalty to finished items, it uses mathematical degradation to manage user interface layout, instantly sinking completed workflows so the user can focus entirely on real emergencies.
+#INSTRUCTION TO AGENT:#
+
+DO NOT TOUCH THIS FILE.
+
+RATHER CREATE A NEW FILE IF NEED BE.
+
+THIS FILE IS ONLY FOR REFERENCE AND GUIDANCE.
+
+#####################################################
+
+
+Exercise: Algorithm Deconstruction Challenge
+
+1. Selected one of the practical algorithms given in Python i.e:
+
+Task priority sorting and filtering algorithm
+
+2. Used the provided AI prompts from the "Deciphering Complex Functions and Algorithms" section to break down the algorithm.
+
+3. Understanding of the AI explanation (using visual diagrams where it helps) is documented as follows: 
+At its core, this algorithm is an automated triage system. that is the process of sorting and prioritizing tasks based on how urgent or severe they are. Instead of a human manually moving tasks up and down a list, the code looks at five specific traits of a task, translates them into math, and spits out a final "importance score". The higher the score, the higher it sits on your to-do list.
+
+This is done as follows: 
+[ Incoming Task ]
+       |
+       |
+ +---------------+
+  BASE PRIORITY  --> Multiply by 10 (e.g., Medium = 20 pts)
+ +---------------+
+       
+       |
+ +---------------+
+ | DUE DATE DDL  | --> Overdue (+35) | Today (+20) | This Week (+10)
+ +---------------+
+       |
+       |
+ +---------------+
+ | STATUS CHECK  | --> Is it DONE? (-50 pts) | In REVIEW? (-15 pts)
+ +---------------+
+       |
+       |
+ +---------------+
+ | HOT-TAG BOOST | --> Matches "blocker", "critical", "urgent"? (+8 pts)
+ +---------------+
+       |
+       |
+ +---------------+
+ | RECENCY CHECK | --> Modified in last 24 hours? (+5 pts)
+ +---------------+
+       |
+       |
+ [ FINAL INTEGER SCORE ] ---> Sent to Sort & Filter Pipeline (Highest First)
+
+4. Insights and learning points are documented as follows:
+When one looks closely at the Python implementation, the most impressive engineering choice is the use of the Schwartzian Transform to optimize performance scaling. By caching each task's score in a temporary tuple array before sorting, the system evaluates the complex math exactly once per task. This prevents the sorting engine from wasting CPU cycles on redundant recalculations.
+
+The algorithm also showcases a deliberate design bias through geometric weight scaling. Priority scores jump sharply from medium to urgent, ensuring that a task's base tier heavily dominates the final layout. Additionally, the logic uses an elegant Pythonic any() generator expression to scan for high-alert metadata like "blocker" tags, which instantly short-circuits to save processing time.
+
+However, a close structural audit reveals a couple of vulnerabilities regarding time tracking and system stability. Polling datetime.now() directly inside the loop introduces a shifting baseline flaw. If the function processes a massive dataset, the time anchor continuously drifts forward, making the sorting non-deterministic. Furthermore, relying on timezone-naï¿½ve arithmetic creates a severe crash risk if the database utilizes timezone-aware UTC timestamps.
+
+Ultimately, the algorithm masterfully combines ranking and visual filtering into a single equation. By applying a massive 50-point penalty to finished items, it uses mathematical degradation to manage user interface layout, instantly sinking completed workflows so the user can focus entirely on real emergencies.
+
+
+Reflection Questions
+---------------------
+## How did the AIâ€™s explanation change your understanding of the algorithm?
+
+The explanation completely changed how I look at the project by showing me the bigger picture. Before, I just saw a collection of separate scripts, but now I understand it as a sequential pipeline where data flows through a 4-layer tiered architecture. It also opened my eyes to data serialization, helping me realize that saving to JSON isn't just a simple "dump" of data, but a precise translation layer where Python objects like UUIDs and Enums must be actively flattened and rebuilt.
+
+## What aspects were still difficult to understand after AI explanation?
+I still find the bidirectional decoding logic a bit tricky to track fully. While flattening data with a TaskEncoder makes sense to me, following the exact code paths within a custom TaskDecoder to accurately rebuild raw timestamps and integer-mapped Enums from flat text can get confusing. Ensuring that state changes deep inside models.py stay perfectly synchronized with the arrays in app.py before hitting the hard drive also takes some extra mental effort to trace.
+
+## How would you explain this algorithm to another junior developer?
+I would use a restaurant analogy. Think of cli.py as the waiter taking the order, and app.py as the kitchen manager coordinating who does what. The manager looks at the recipe book, models.py, to ensure the order is formatted correctly with strict rules and valid ingredients. Finally, storage.py is the pantry where everything is packed away into organized, labeled boxes so that the data doesn't disappear when the restaurant closes for the night.
+
+## Did you test this understanding against AI?
+Yes, I tested my mental map by asking the AI to do a step-by-step trace of a live command. I had it follow an action like completing a task from the moment it hits the terminal boundary down to the mark_as_done() state change, and finally through the serialization saving routine. Doing this structural "dry run" confirmed that my understanding of the execution path matched how the code actually runs.
+
+## How might you improve the algorithm based on your understanding?
+I would improve the system by replacing the custom, hand-written encoders and decoders with an automated data validation library like Pydantic. This would handle the complex Enum, datetime, and UUID translations automatically out of the box and eliminate a lot of boilerplate code. I would also add error-catching mid-tiers so that if a user manually edits and corrupts the JSON save file, the manager can catch it gracefully and reload a backup instead of letting the application crash.
+------------------------------

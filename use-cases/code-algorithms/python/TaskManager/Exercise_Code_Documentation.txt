@@ -1,0 +1,543 @@
+#INSTRUCTION TO AGENT:#
+
+DO NOT TOUCH THIS FILE.
+
+RATHER CREATE A NEW FILE IF NEED BE.
+
+THIS FILE IS ONLY FOR REFERENCE AND GUIDANCE.
+
+#####################################################
+
+Exercise: Code Documentation
+
+Instructions
+1. Selected the code to document
+   - Selected `task_list_merge.py` (`merge_task_lists` and `resolve_task_conflict`) from the `TaskManager` Python project. This algorithm handles bidirectional data synchronization between local and remote task stores, implementing Last-Write-Wins (LWW) conflict resolution, status precedence rules, and tag set union merging.
+
+2. Applied Prompt 1 to generate comprehensive documentation
+   - Applied Prompt 1 to generate standard Google-style Python docstrings containing comprehensive parameter descriptions, return tuple breakdowns, exception scenarios, edge-case warnings, and reproducible example usage.
+
+3. Reviewed the generated documentation for accuracy and completeness
+   - Evaluated the output against the implementation in `task_list_merge.py`. Verified that type signatures (`dict[str, Task]`), 5-element return tuple definitions, deepcopy mutation semantics, and status precedence rules (`TaskStatus.DONE` overriding newer non-done tasks) were accurately documented.
+
+4. Adjusted prompt where needed to improve the results
+   - Refined prompt requirements to specify standard Google/Sphinx docstring formatting, Python type annotations (`typing.Dict`, `typing.Tuple`), explicit exception modes (`AttributeError`, `TypeError`), and side-effect notes regarding `copy.deepcopy()`.
+
+5. Tried Prompt 2 to get a different perspective on the code’s intent and logic
+   - Executed Prompt 2 to analyze the high-level distributed state synchronization architecture, step-by-step logic execution, key structural assumptions (e.g., clock synchronization, absence of deletion tombstones), inline commentary suggestions, and potential refactoring opportunities.
+
+6. Compare and combine the best elements from both documentation versions
+   - Merged Prompt 1's rigorous API contract specifications and type definitions with Prompt 2's conceptual algorithm breakdown, edge-case caveats, and inline logic comments to create a production-grade documented codebase.
+
+7. Share your final documentation with a partner and discuss differences
+   - Shared and compared results with a peer. Noted that AI excels at standardizing API specifications and parameter typing, while human developer review is essential for identifying domain-level edge cases like clock drift and hard-deletion vulnerabilities.
+
+
+Submission
+At the end of the exercise, one has:
+
+1. The original code selected to document
+-----------------------------------------
+```python
+import copy
+
+from models import TaskStatus, TaskPriority
+
+def merge_task_lists(local_tasks, remote_tasks):
+    """
+    Merge two task lists with conflict resolution.
+
+    Args:
+        local_tasks: Dictionary of tasks from local source {task_id: task}
+        remote_tasks: Dictionary of tasks from remote source {task_id: task}
+
+    Returns:
+        tuple: (
+            merged tasks dictionary,
+            tasks to be created in remote,
+            tasks to be updated in remote,
+            tasks to be created in local,
+            tasks to be updated in local
+        )
+    """
+    merged_tasks = {}
+    to_create_remote = {}
+    to_update_remote = {}
+    to_create_local = {}
+    to_update_local = {}
+
+    # Step 1: Identify all unique task IDs across both sources
+    all_task_ids = set(local_tasks.keys()) | set(remote_tasks.keys())
+
+    for task_id in all_task_ids:
+        local_task = local_tasks.get(task_id)
+        remote_task = remote_tasks.get(task_id)
+
+        # Case 1: Task exists only locally - add to remote
+        if local_task and not remote_task:
+            merged_tasks[task_id] = local_task
+            to_create_remote[task_id] = local_task
+
+        # Case 2: Task exists only in remote - add to local
+        elif not local_task and remote_task:
+            merged_tasks[task_id] = remote_task
+            to_create_local[task_id] = remote_task
+
+        # Case 3: Task exists in both - resolve conflicts
+        else:
+            merged_task, should_update_local, should_update_remote = resolve_task_conflict(
+                local_task, remote_task
+            )
+
+            merged_tasks[task_id] = merged_task
+
+            if should_update_local:
+                to_update_local[task_id] = merged_task
+
+            if should_update_remote:
+                to_update_remote[task_id] = merged_task
+
+    return (
+        merged_tasks,
+        to_create_remote,
+        to_update_remote,
+        to_create_local,
+        to_update_local
+    )
+
+def resolve_task_conflict(local_task, remote_task):
+    """
+    Resolve conflicts between two versions of the same task.
+
+    Returns:
+        tuple: (
+            merged task,
+            should_update_local (bool),
+            should_update_remote (bool)
+        )
+    """
+    # Make a copy of the local task to use as our base
+    merged_task = copy.deepcopy(local_task)
+
+    # Track if we need to update either source
+    should_update_local = False
+    should_update_remote = False
+
+    # Most recent update wins for most fields
+    if remote_task.updated_at > local_task.updated_at:
+        # Remote task is newer, update local fields
+        merged_task.title = remote_task.title
+        merged_task.description = remote_task.description
+        merged_task.priority = remote_task.priority
+        merged_task.due_date = remote_task.due_date
+        should_update_local = True
+    else:
+        # Local task is newer or same age, update remote fields
+        should_update_remote = True
+
+    # Special handling for completed status - completed wins over not completed
+    if remote_task.status == TaskStatus.DONE and local_task.status != TaskStatus.DONE:
+        merged_task.status = TaskStatus.DONE
+        merged_task.completed_at = remote_task.completed_at
+        should_update_local = True
+    elif local_task.status == TaskStatus.DONE and remote_task.status != TaskStatus.DONE:
+        # Keep local status (already in merged_task)
+        should_update_remote = True
+    elif remote_task.status != local_task.status:
+        # Different non-completed status - most recent wins
+        if remote_task.updated_at > local_task.updated_at:
+            merged_task.status = remote_task.status
+            should_update_local = True
+        else:
+            # Keep local status (already in merged_task)
+            should_update_remote = True
+
+    # Merge tags from both sources (union)
+    all_tags = set(local_task.tags) | set(remote_task.tags)
+    merged_task.tags = list(all_tags)
+
+    # If tags changed in either source, update both
+    if set(merged_task.tags) != set(local_task.tags):
+        should_update_local = True
+    if set(merged_task.tags) != set(remote_task.tags):
+        should_update_remote = True
+
+    # Update the timestamp to latest
+    merged_task.updated_at = max(local_task.updated_at, remote_task.updated_at)
+
+    return merged_task, should_update_local, should_update_remote
+```
+
+2. The documentation generated using Prompt 1
+---------------------------------------------
+### Comprehensive API Documentation (Prompt 1 Output)
+
+```python
+"""
+Task List Synchronization and Conflict Resolution Module.
+
+This module provides functions to synchronize offline/local task state with a
+remote data store using Last-Write-Wins (LWW) field reconciliation, status
+precedence rules, and tag set union merging.
+"""
+
+import copy
+from typing import Dict, Tuple, List
+from models import Task, TaskStatus, TaskPriority
+
+
+def merge_task_lists(
+    local_tasks: Dict[str, Task],
+    remote_tasks: Dict[str, Task]
+) -> Tuple[Dict[str, Task], Dict[str, Task], Dict[str, Task], Dict[str, Task], Dict[str, Task]]:
+    """
+    Synchronizes two task dictionaries (local and remote) and determines delta operations.
+
+    Compares task IDs across both datasets to categorize tasks into new local creations,
+    new remote creations, or conflicting existing tasks that require field reconciliation.
+
+    Args:
+        local_tasks (Dict[str, Task]): Mapping of task IDs to local Task objects.
+        remote_tasks (Dict[str, Task]): Mapping of task IDs to remote Task objects.
+
+    Returns:
+        Tuple[Dict[str, Task], Dict[str, Task], Dict[str, Task], Dict[str, Task], Dict[str, Task]]:
+            A 5-element tuple containing:
+            1. merged_tasks (Dict[str, Task]): Complete synchronized task map.
+            2. to_create_remote (Dict[str, Task]): Tasks existing locally but missing remotely.
+            3. to_update_remote (Dict[str, Task]): Tasks needing updates pushed to remote.
+            4. to_create_local (Dict[str, Task]): Tasks existing remotely but missing locally.
+            5. to_update_local (Dict[str, Task]): Tasks needing updates pulled to local.
+
+    Raises:
+        AttributeError: If any object in `local_tasks` or `remote_tasks` lacks required
+            attributes (`id`, `updated_at`, `status`, `tags`).
+        TypeError: If `local_tasks` or `remote_tasks` are not dictionary-like mappings.
+
+    Example:
+        >>> local = {"t1": Task("Buy milk", priority=TaskPriority.LOW)}
+        >>> remote = {"t2": Task("Write code", priority=TaskPriority.HIGH)}
+        >>> merged, create_rem, up_rem, create_loc, up_loc = merge_task_lists(local, remote)
+        >>> list(merged.keys())
+        ['t1', 't2']
+        >>> "t1" in create_rem
+        True
+        >>> "t2" in create_loc
+        True
+
+    Notes:
+        - Tasks present in only one dictionary are assumed to be newly created tasks, not deleted tasks.
+        - Deep copies are created during conflict resolution to avoid mutating input task objects in place.
+    """
+    pass
+
+
+def resolve_task_conflict(
+    local_task: Task,
+    remote_task: Task
+) -> Tuple[Task, bool, bool]:
+    """
+    Reconciles field differences between two versions of the same task.
+
+    Resolution Strategy:
+    1. Base Fields (title, description, priority, due_date): Last-Write-Wins based on `updated_at`.
+    2. Task Status: Completed (`TaskStatus.DONE`) overrides any non-completed status regardless of timestamp.
+       For non-completed status conflicts, Last-Write-Wins applies.
+    3. Tags: Set union (`set(local.tags) | set(remote.tags)`) guarantees no tags are lost.
+    4. Updated Timestamp: Set to `max(local_task.updated_at, remote_task.updated_at)`.
+
+    Args:
+        local_task (Task): The local version of the task.
+        remote_task (Task): The remote version of the task.
+
+    Returns:
+        Tuple[Task, bool, bool]:
+            - merged_task (Task): A new `Task` instance reflecting the reconciled state.
+            - should_update_local (bool): True if the local store must persist updates.
+            - should_update_remote (bool): True if the remote store must persist updates.
+
+    Raises:
+        AttributeError: If `local_task` or `remote_task` missing `updated_at`, `status`, or `tags`.
+        TypeError: If `updated_at` timestamps cannot be compared (e.g., mixing naive & aware datetimes).
+
+    Example:
+        >>> t_loc = Task("Fix bug", status=TaskStatus.TODO)
+        >>> t_rem = Task("Fix bug", status=TaskStatus.DONE)
+        >>> merged, up_loc, up_rem = resolve_task_conflict(t_loc, t_rem)
+        >>> merged.status == TaskStatus.DONE
+        True
+        >>> up_loc
+        True
+
+    Notes:
+        - Immutability: Uses `copy.deepcopy(local_task)` as the base object to prevent mutating inputs.
+        - Timezone Safety: `updated_at` timestamps on both tasks must share timezone awareness settings.
+    """
+    pass
+```
+
+
+3. The insights or improvements identified using Prompt 2
+---------------------------------------------------------
+### Intent, Logic Explanation, and Code Assessment (Prompt 2 Output)
+
+#### 1. High-Level Intent & Architecture
+The `task_list_merge.py` module implements a **two-way differential state synchronization engine** for an offline-first task management application. Its primary goal is to ensure data convergence between a client's local cache and a centralized remote server without data loss.
+
+#### 2. Step-by-Step Logic Breakdown
+1. **Identifier Aggregation**: Performs a set union on dictionary keys (`set(local_tasks.keys()) | set(remote_tasks.keys())`) to discover every task ID in existence across both environments.
+2. **Three-Way Routing**:
+   - **Local-only items**: Preserved in merged output and queued for creation on the remote server (`to_create_remote`).
+   - **Remote-only items**: Preserved in merged output and queued for creation in the local database (`to_create_local`).
+   - **Shared items**: Passed into `resolve_task_conflict` for granular property reconciliation.
+3. **Conflict Reconciliation (`resolve_task_conflict`)**:
+   - **Deepcopy Base**: Clones `local_task` so input instances remain unaltered.
+   - **Last-Write-Wins (LWW) Evaluation**: Compares `updated_at` timestamps. The newer task overwrites `title`, `description`, `priority`, and `due_date`.
+   - **Monotonic Completion Business Rule**: Overrides standard LWW for completion status—if *either* version is marked `DONE`, the merged result becomes `DONE` to prevent completed work from accidentally reverting to open status due to delayed syncs.
+   - **Tag Aggregation**: Computes the mathematical set union of tags from both versions. If tags were added on either side, both local and remote stores are flagged for update flags.
+   - **Timestamp Convergence**: Bumps `updated_at` to `max(local.updated_at, remote.updated_at)`.
+
+#### 3. Assumptions & Edge Cases Identified
+- **Clock Drift Vulnerability**: LWW relies on `datetime.now()` wall-clock timestamps. System clock misalignment between client and server can cause older edits to incorrectly overwrite newer ones.
+- **Tombstone Deficit (No Deletion Support)**: If a user deletes a task locally, it will not exist in `local_tasks` but will exist in `remote_tasks`. The algorithm treats this as a newly created remote task and resurrects it locally!
+- **Datetime Timezone Incompatibility**: Comparing a timezone-naive `datetime` with a timezone-aware `datetime` raises `TypeError: can't compare offset-naive and offset-aware datetimes`.
+- **List Mutation Side Effects**: Returning `list(all_tags)` produces non-deterministic tag ordering due to `set` iteration.
+
+#### 4. Suggested Improvements
+1. **Add Type Annotations**: Include standard Python type hints (`dict[str, Task]`, `tuple[...]`) for static analysis and IDE autocomplete.
+2. **Deterministic Tag Ordering**: Sort the tag union (`sorted(all_tags)`) to prevent unnecessary database writes caused by reordered list comparisons.
+3. **De-duplication of Dirty Flags**: Streamline `should_update_local` / `should_update_remote` flag evaluation into clear, explicit helper methods or unified flag setters.
+4. **Deletion Tombstones**: Introduce an `is_deleted` attribute or tombstone status to prevent deleted tasks from being re-created during synchronization.
+
+
+4. A final combined documentation version
+-----------------------------------------
+```python
+"""
+Task List Synchronization and Conflict Resolution Module.
+
+This module implements a bidirectional state synchronization algorithm between local
+(offline) and remote (cloud) task stores. It uses Last-Write-Wins (LWW) timestamp logic,
+status precedence rules (completion wins), and set-union tag merging to achieve eventual
+consistency across distributed storage layers.
+"""
+
+import copy
+from typing import Dict, Tuple, List, Set, Optional
+from models import Task, TaskStatus, TaskPriority
+
+
+def merge_task_lists(
+    local_tasks: Dict[str, Task],
+    remote_tasks: Dict[str, Task]
+) -> Tuple[
+    Dict[str, Task],  # Merged result mapping task_id -> Task
+    Dict[str, Task],  # Tasks to create on remote
+    Dict[str, Task],  # Tasks to update on remote
+    Dict[str, Task],  # Tasks to create on local
+    Dict[str, Task]   # Tasks to update on local
+]:
+    """
+    Synchronize local and remote task dictionaries and calculate state delta operations.
+
+    Iterates over the union of task IDs from both local and remote dictionaries. It routes
+    tasks into sync categories: missing remotely (create remote), missing locally (create local),
+    or present in both (resolve field conflict).
+
+    Args:
+        local_tasks (Dict[str, Task]): Dictionary mapping task IDs to local Task objects.
+        remote_tasks (Dict[str, Task]): Dictionary mapping task IDs to remote Task objects.
+
+    Returns:
+        Tuple[Dict[str, Task], Dict[str, Task], Dict[str, Task], Dict[str, Task], Dict[str, Task]]:
+            A 5-tuple containing delta change sets:
+            - merged_tasks: Comprehensive dictionary of all synchronized tasks.
+            - to_create_remote: Tasks that exist locally and must be created on remote.
+            - to_update_remote: Tasks modified locally that must be updated on remote.
+            - to_create_local: Tasks that exist remotely and must be created locally.
+            - to_update_local: Tasks modified remotely that must be updated locally.
+
+    Raises:
+        AttributeError: If any task object lacks required fields (`updated_at`, `status`, `tags`).
+        TypeError: If input parameters are not dictionary instances.
+
+    Example:
+        >>> local = {'t1': Task('Task 1')}
+        >>> remote = {'t1': Task('Task 1 Updated'), 't2': Task('Task 2')}
+        >>> merged, cr_rem, up_rem, cr_loc, up_loc = merge_task_lists(local, remote)
+        >>> set(merged.keys()) == {'t1', 't2'}
+        True
+        >>> 't2' in cr_loc
+        True
+
+    Notes:
+        - Hard Deletions: This function does not handle tombstones. If a task is missing from
+          one side, it is assumed to be a newly created task on the other side.
+    """
+    merged_tasks: Dict[str, Task] = {}
+    to_create_remote: Dict[str, Task] = {}
+    to_update_remote: Dict[str, Task] = {}
+    to_create_local: Dict[str, Task] = {}
+    to_update_local: Dict[str, Task] = {}
+
+    # Step 1: Discover all unique task IDs across local and remote sources
+    all_task_ids: Set[str] = set(local_tasks.keys()) | set(remote_tasks.keys())
+
+    # Step 2: Process each task ID based on source presence
+    for task_id in all_task_ids:
+        local_task: Optional[Task] = local_tasks.get(task_id)
+        remote_task: Optional[Task] = remote_tasks.get(task_id)
+
+        # Case 1: Exists locally only -> Queue for creation on remote server
+        if local_task and not remote_task:
+            merged_tasks[task_id] = local_task
+            to_create_remote[task_id] = local_task
+
+        # Case 2: Exists remotely only -> Queue for creation in local database
+        elif not local_task and remote_task:
+            merged_tasks[task_id] = remote_task
+            to_create_local[task_id] = remote_task
+
+        # Case 3: Exists in both stores -> Perform field-level conflict resolution
+        else:
+            # Type assertion for static checkers (both tasks are guaranteed non-None here)
+            assert local_task is not None and remote_task is not None
+
+            merged_task, should_update_local, should_update_remote = resolve_task_conflict(
+                local_task, remote_task
+            )
+
+            merged_tasks[task_id] = merged_task
+
+            if should_update_local:
+                to_update_local[task_id] = merged_task
+
+            if should_update_remote:
+                to_update_remote[task_id] = merged_task
+
+    return (
+        merged_tasks,
+        to_create_remote,
+        to_update_remote,
+        to_create_local,
+        to_update_local
+    )
+
+
+def resolve_task_conflict(
+    local_task: Task,
+    remote_task: Task
+) -> Tuple[Task, bool, bool]:
+    """
+    Resolve property conflicts between two versions of the same task.
+
+    Reconciliation Protocol:
+    1. Base Properties (title, description, priority, due_date): Reconciled using Last-Write-Wins (LWW)
+       based on `updated_at`.
+    2. Status Property: Monotonic completion rule—if either local or remote is `TaskStatus.DONE`,
+       the status resolves to `DONE`. Otherwise, LWW applies.
+    3. Tags: Set union (`set(local.tags) | set(remote.tags)`) ensures tag additions from both sides persist.
+    4. Updated Timestamp: Reconciled to `max(local_task.updated_at, remote_task.updated_at)`.
+
+    Args:
+        local_task (Task): Local version of the task.
+        remote_task (Task): Remote version of the task.
+
+    Returns:
+        Tuple[Task, bool, bool]:
+            - merged_task: Reconciled Task instance (cloned, non-mutating).
+            - should_update_local: Boolean flag indicating if local storage needs persistence.
+            - should_update_remote: Boolean flag indicating if remote storage needs persistence.
+
+    Raises:
+        TypeError: If `updated_at` datetimes have mismatched timezone awareness (naive vs aware).
+        AttributeError: If required Task attributes are missing.
+
+    Example:
+        >>> t1 = Task("Bug fix", status=TaskStatus.TODO)
+        >>> t2 = Task("Bug fix", status=TaskStatus.DONE)
+        >>> reconciled, update_loc, update_rem = resolve_task_conflict(t1, t2)
+        >>> reconciled.status == TaskStatus.DONE
+        True
+
+    Notes:
+        - Immutability Guarantee: Operates on a deep copy of `local_task` to prevent unintended side effects.
+    """
+    # Create an independent copy of local_task as our reconciliation working object
+    merged_task: Task = copy.deepcopy(local_task)
+
+    # Track persistence requirements for each endpoint
+    should_update_local: bool = False
+    should_update_remote: bool = False
+
+    # -------------------------------------------------------------------------
+    # 1. Base Property Reconciliation (Last-Write-Wins based on updated_at)
+    # -------------------------------------------------------------------------
+    if remote_task.updated_at > local_task.updated_at:
+        # Remote version is newer: pull remote scalar attributes into merged task
+        merged_task.title = remote_task.title
+        merged_task.description = remote_task.description
+        merged_task.priority = remote_task.priority
+        merged_task.due_date = remote_task.due_date
+        should_update_local = True
+    else:
+        # Local version is newer or equal: push local attributes to remote
+        should_update_remote = True
+
+    # -------------------------------------------------------------------------
+    # 2. Special Status Resolution (Completion Monotonicity)
+    # -------------------------------------------------------------------------
+    if remote_task.status == TaskStatus.DONE and local_task.status != TaskStatus.DONE:
+        # Remote completed the task -> Completion wins, pull status to local
+        merged_task.status = TaskStatus.DONE
+        merged_task.completed_at = remote_task.completed_at
+        should_update_local = True
+    elif local_task.status == TaskStatus.DONE and remote_task.status != TaskStatus.DONE:
+        # Local completed the task -> Completion wins, push status to remote
+        should_update_remote = True
+    elif remote_task.status != local_task.status:
+        # Both non-completed but different -> Last-Write-Wins applies
+        if remote_task.updated_at > local_task.updated_at:
+            merged_task.status = remote_task.status
+            should_update_local = True
+        else:
+            should_update_remote = True
+
+    # -------------------------------------------------------------------------
+    # 3. Tag Merging (Union of local and remote tag sets)
+    # -------------------------------------------------------------------------
+    all_tags: Set[str] = set(local_task.tags) | set(remote_task.tags)
+    merged_task.tags = list(all_tags)
+
+    # If tag set changed relative to local or remote, mark respective endpoint dirty
+    if set(merged_task.tags) != set(local_task.tags):
+        should_update_local = True
+    if set(merged_task.tags) != set(remote_task.tags):
+        should_update_remote = True
+
+    # -------------------------------------------------------------------------
+    # 4. Final Timestamp Synchronization
+    # -------------------------------------------------------------------------
+    merged_task.updated_at = max(local_task.updated_at, remote_task.updated_at)
+
+    return merged_task, should_update_local, should_update_remote
+```
+
+
+Prepared to share what learnings about:
+----------------------------------------
+1. Which parts of the documentation were most challenging for the AI?
+   - **Complex Tuple Return Signatures**: Generating clear, readable docstring descriptions for multi-element tuple returns (e.g., the 5-dictionary return tuple of `merge_task_lists`) required explicit prompt constraints; otherwise, AI tended to collapse them into vague summaries like "returns a tuple of dicts".
+   - **Hidden Business Logic vs General Rules**: AI easily documented standard Last-Write-Wins (LWW) rules, but missed the subtle business rule where `TaskStatus.DONE` overrides LWW unless explicitly prompted to check for state precedence logic.
+   - **Implicit Side-Effects**: Identifying that `copy.deepcopy()` was intentionally used for immutability, or that missing tasks are implicitly assumed to be new creations rather than deleted items, required secondary prompt probing (Prompt 2).
+
+2. What additional information was needed to provide in prompts?
+   - **Target Docstring Style**: Prompt 1 needed specification of the docstring convention (e.g., Google Python Style) to ensure consistent sections (`Args`, `Returns`, `Raises`, `Example`).
+   - **Type System Syntax**: Specifying Python 3.9+ type hint standards (`Dict[str, Task]`, `Tuple[...]`) prevented AI from using obsolete or informal pseudocode types like `dict(str -> Task)`.
+   - **Contextual Architecture**: Providing broader context (e.g., mentioning offline-first sync and distributed state) helped AI accurately describe *why* certain trade-offs (like tag set union or deepcopy) were chosen.
+
+3. How one would use this approach in their own projects?
+   - **Two-Pass Automated Documentation Workflow**:
+     - **Pass 1 (Prompt 1)**: Use as a CI check or IDE snippet generator to automatically produce standardized JSDoc/Docstring skeletons for public APIs and utility functions.
+     - **Pass 2 (Prompt 2)**: Use during Pull Request (PR) code reviews and architectural refactoring to audit complex algorithms for edge cases, clock drift risks, and hidden coupling.
+   - **Onboarding & Technical Debt Audits**: Run Prompt 2 across legacy or poorly documented modules to quickly generate high-level logic breakdowns and identify candidate refactoring areas without reading line-by-line raw code.
