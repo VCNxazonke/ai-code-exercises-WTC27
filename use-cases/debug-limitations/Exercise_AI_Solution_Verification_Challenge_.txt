@@ -1,0 +1,79 @@
+﻿#INSTRUCTION TO AI AGENT:#
+
+DO NOT TOUCH THIS FILE.
+
+RATHER CREATE A NEW FILE IF NEED BE.
+
+THIS FILE IS ONLY FOR REFERENCE AND GUIDANCE.
+
+#####################################################
+
+Exercise: AI Solution Verification Challenge
+
+1. Selected Scenario: A sorting function with a subtle bug (Python Merge Sort)
+Target Files: debug-limitations/python/merge_sort.py, debug-limitations/python/test_merge_sort.py
+
+2. Asked an AI tool to solve the problem wherein it came with the following as part of the solution:
+
+Bug Analysis & Verification Process
+-----------------------------------
+2.1. Bug Identification:
+   - Algorithm: Recursive Merge Sort (`merge_sort` and `merge` helper).
+   - Bug Location: In the left remainder cleanup loop:
+     ```python
+     # Buggy:
+     while i < len(left):
+         result.append(left[i])
+         j += 1 # Bug: incrementing j instead of i causes an infinite loop!
+     ```
+   - Impact: When `left` has leftover elements after main comparison loop, `i` never increments, causing an infinite while-loop and process hang.
+
+3. Verification Strategies Applied:
+
+   a) Strategy 1: Collaborative Solution Verification
+      - Built a Python `unittest` suite (`test_merge_sort.py`) testing empty lists, single elements, pre-sorted arrays, reverse arrays, duplicate values, and negative numbers.
+      - Ran empirical test execution to confirm clean passing across all 6 test cases.
+
+   b) Strategy 2: Learning Through Alternative Approaches
+      - Evaluated manual loop pointer increments (`i += 1`) vs idiomatic Python list slice extensions (`result.extend(left[i:])`).
+      - Confirmed that while manual pointer iteration is instructionally clear, slice extension eliminates index variable state mutations altogether, rendering off-by-one typos impossible.
+
+   c) Strategy 3: Developing a Critical Eye
+      - Conducted a line-by-line inspection focused specifically on loop termination conditions and index variable state mutations.
+      - Recognized that LLMs frequently output plausible-looking code where variable names (`i` vs `j`) are swapped in repetitive code blocks.
+
+4 and 5. Verified Final Solution Implementation:
+   ```python
+   def merge(left, right):
+       result = []
+       i = j = 0
+       while i < len(left) and j < len(right):
+           if left[i] <= right[j]:
+               result.append(left[i])
+               i += 1
+           else:
+               result.append(right[j])
+               j += 1
+       
+       # Corrected pointer increment: i += 1
+       while i < len(left):
+           result.append(left[i])
+           i += 1
+           
+       while j < len(right):
+           result.append(right[j])
+           j += 1
+           
+       return result
+   ```
+
+Reflection Questions
+------------------------------------------
+## How did your confidence in the solution change after verification?
+- Observed that initial confidence in unverified code was low due to the presence of subtle index typos. However, after implementing a comprehensive automated unit test suite (`test_merge_sort.py`) and executing empirical tests across boundary edge cases, confidence in the final solution reached 100%.
+
+## What aspects of the AI solution required the most scrutiny?
+- Noted that index variable increments inside loop bodies (`i += 1` vs `j += 1`) and slice boundary expressions required the greatest scrutiny. AI models frequently produce syntactically valid logic that conceals subtle infinite-loop flaws within cleanup loops.
+
+## Which verification technique was most valuable for your specific problem?
+- Concluded that empirical unit testing (Collaborative Solution Verification) was the single most valuable technique. Executing automated test assertions instantly exposed the hanging loop and provided instant, deterministic feedback confirming that the corrected code resolved the bug.

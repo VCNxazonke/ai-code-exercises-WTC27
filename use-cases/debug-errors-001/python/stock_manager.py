@@ -1,9 +1,20 @@
-# stock_manager.py
+﻿# stock_manager.py
+"""
+Stock Manager Inventory Reporting Module.
+Fixed off-by-one index error using Pythonic enumerate iteration.
+"""
+
 def print_inventory_report(items):
+    """
+    Prints a formatted report of inventory items.
+    
+    Args:
+        items (list[dict]): List of item dictionaries with 'name' and 'quantity' keys.
+    """
     print("===== INVENTORY REPORT =====")
-    # Error occurs in this loop - classic off-by-one error
-    for i in range(len(items) + 1):  # Notice the + 1 here
-        print(f"Item {i+1}: {items[i]['name']} - Quantity: {items[i]['quantity']}")
+    # Fixed: Use Pythonic enumerate(items, start=1) to prevent IndexError
+    for idx, item in enumerate(items, start=1):
+        print(f"Item {idx}: {item['name']} - Quantity: {item['quantity']}")
     print("============================")
 
 def main():
