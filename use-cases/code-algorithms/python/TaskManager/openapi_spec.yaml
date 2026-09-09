@@ -1,0 +1,165 @@
+openapi: 3.0.3
+info:
+  title: User Registration API
+  description: API endpoint for registering new user accounts with input validation, password hashing, and email confirmation token generation.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local Development Server
+
+paths:
+  /api/users/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account, validates unique credentials and password strength, hashes the password, persists user to database, and triggers confirmation email dispatch.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+            examples:
+              valid_registration:
+                summary: Valid User Registration Payload
+                value:
+                  username: johndoe
+                  email: john.doe@example.com
+                  password: SecurePassword123!
+
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationSuccessResponse'
+              examples:
+                success_example:
+                  summary: Successful Registration Response
+                  value:
+                    message: User registered successfully
+                    user:
+                      id: 101
+                      username: johndoe
+                      email: john.doe@example.com
+                      created_at: '2026-09-09T11:15:00.000000'
+                      role: user
+
+        '400':
+          description: Bad Request - Missing required field, invalid email format, or weak password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missing_field:
+                  summary: Missing Required Field
+                  value:
+                    error: Missing required field
+                    message: email is required
+                invalid_email:
+                  summary: Invalid Email Format
+                  value:
+                    error: Invalid email
+                    message: Please provide a valid email address
+                weak_password:
+                  summary: Password Too Short
+                  value:
+                    error: Weak password
+                    message: Password must be at least 8 characters long
+
+        '409':
+          description: Conflict - Username or Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                username_taken:
+                  summary: Username Already In Use
+                  value:
+                    error: Username taken
+                    message: Username is already in use
+                email_exists:
+                  summary: Email Already Registered
+                  value:
+                    error: Email exists
+                    message: An account with this email already exists
+
+        '500':
+          description: Internal Server Error - Database rollback or unhandled exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  summary: Internal Registration Failure
+                  value:
+                    error: Server error
+                    message: Failed to register user
+
+components:
+  schemas:
+    UserRegistrationRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          description: Unique username for the account
+          example: johndoe
+        email:
+          type: string
+          format: email
+          description: Valid user email address
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User password (must be at least 8 characters long)
+          example: SecurePassword123!
+
+    RegistrationSuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: User registered successfully
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Unique auto-generated user identifier
+              example: 101
+            username:
+              type: string
+              example: johndoe
+            email:
+              type: string
+              example: john.doe@example.com
+            created_at:
+              type: string
+              format: date-time
+              example: '2026-09-09T11:15:00.000000'
+            role:
+              type: string
+              example: user
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Short error code/category
+          example: Bad Request
+        message:
+          type: string
+          description: Detailed explanation of the error
+          example: Password must be at least 8 characters long

@@ -1,0 +1,140 @@
+#INSTRUCTION TO AI AGENT:#
+
+DO NOT TOUCH THIS FILE.
+
+RATHER CREATE A NEW FILE IF NEED BE.
+
+THIS FILE IS ONLY FOR REFERENCE AND GUIDANCE.
+
+#####################################################
+
+Documented the Task Manager project using the Task Manager system from the Code Comprehension exercise in the folder.
+
+Instructions
+1. Selected the project to document
+   - Selected the `TaskManager` Python application (comprising `cli.py`, `models.py`, `storage.py`, `task_manager.py`, `task_priority.py`, `task_parser.py`, `task_list_merge.py`, and test suites).
+
+2. Applied Prompt 1 to generate a comprehensive README file
+   - Applied Prompt 1 to generate a production-grade `README.md` covering project overview, key features, prerequisites, installation steps, CLI usage examples, directory structure breakdown, configuration, unit testing instructions, troubleshooting, contributing guidelines, and licensing.
+
+3. Reviewed the README for completeness and accuracy
+   - Audited the generated `README.md` against the project codebase. Verified all subcommands (`create`, `parse`, `list`, `update-status`, `update-priority`, `update-due-date`, `add-tag`, `remove-tag`, `stats`), natural language syntax markers, priority weight formulas, and JSON persistence paths.
+
+4. Applied Prompt 2 to create a step-by-step guide for one of the project’s features
+   - Applied Prompt 2 to create `USER_GUIDE.md`, detailing step-by-step instructions for task creation via natural language parsing, priority sorting, status updates, tag management, and bidirectional offline data synchronization.
+
+5. Applied Prompt 3 to create an FAQ document for the project
+   - Applied Prompt 3 to generate `FAQ.md`, categorizing answers across Getting Started, Features & Scoring Algorithms, Data Persistence & Synchronization, and Troubleshooting Common Errors.
+
+6. To compare documentation with a partner and provide feedback
+   - Shared documentation deliverables with a peer and reviewed formatting. Confirmed that breaking documentation down into `README.md`, `USER_GUIDE.md`, and `FAQ.md` vastly improves readability compared to a single monolithic document.
+
+_______________________
+Prompt 1: Project README Generation
+_______________________
+Please create a comprehensive README.md file for my project based on the following information:
+
+Project name: TaskManager System
+Description: Python offline-first task management application with priority scoring, natural language parsing, and sync engine.
+Key features:
+- Natural Language Parsing
+- Automated Priority Triage Scoring
+- CLI Interface
+- Custom JSON Storage & Serialization
+- Differential Synchronization Engine
+
+Technologies used: Python 3.11+ (standard library modules: argparse, json, re, datetime, uuid, enum, copy, unittest)
+Installation requirements: Python 3.11 or higher
+
+The README should include:
+1. Clear project title and description
+2. Installation instructions
+3. Basic usage examples
+4. Features overview
+5. Configuration options
+6. Troubleshooting section
+7. Contributing guidelines
+8. License information
+
+Code structure overview:
+[TaskManager/ directory structure with cli.py, models.py, storage.py, task_manager.py, task_priority.py, task_parser.py, task_list_merge.py, tests/]
+
+_______________________
+
+Prompt 2: Step-by-Step Guide Creation
+_______________________
+Please create a step-by-step guide for how to create, manage, sort, and synchronize tasks in our application.
+
+The guide should:
+1. Start with any prerequisites or required access
+2. Break down the process into clear, numbered steps
+3. Include screenshots or code blocks where indicated
+4. Highlight potential issues or common mistakes
+5. End with a troubleshooting section for common problems
+
+Process overview:
+Guide users through CLI installation, explicit and natural language task creation, priority list sorting, status updating, tag management, and offline sync.
+
+User experience level: Beginner to Intermediate
+
+______________________
+
+Prompt 3: FAQ Document Generation
+______________________
+Please help me create a comprehensive FAQ document for TaskManager System.
+
+Basic information:
+- Task management application CLI and sync engine
+- Developers, CLI users, and system integrators
+- Focus on getting started, priority calculation math, JSON persistence, and sync conflict resolution.
+
+Please include:
+1. Questions about getting started
+2. Questions about common features and functionality
+3. Questions about troubleshooting common issues
+4. Questions about data persistence & synchronization
+
+For each question, provide a clear, concise answer that would be helpful to our users.
+
+Known issues or common user questions:
+- Priority calculation formula details
+- Natural language parsing rules
+- Missing/corrupted tasks.json handling
+- Eventual consistency conflict resolution rules (LWW vs DONE precedence)
+______________________
+
+***Submission***
+At the end of the exercise, we have:
+
+1. The project information chosen for documentation
+---------------------------------------------------
+- **Project Name**: TaskManager System
+- **Language & Stack**: Python 3.11+ (Standard Library: `argparse`, `json`, `re`, `datetime`, `uuid`, `enum`, `copy`, `unittest`)
+- **Key Modules**: Domain models (`models.py`), storage & JSON encoders (`storage.py`), task triage scoring (`task_priority.py`), natural language parser (`task_parser.py`), offline sync (`task_list_merge.py`), CLI app (`cli.py`).
+
+2. The comprehensive README generated using Prompt 1
+----------------------------------------------------
+- Production `README.md` created in the `TaskManager` root directory.
+
+3. The step-by-step guide generated using Prompt 2
+---------------------------------------------------
+- Detailed `USER_GUIDE.md` created in the `TaskManager` root directory.
+
+4. The FAQ document generated using Prompt 3
+---------------------------------------------
+- Categorized `FAQ.md` created in the `TaskManager` root directory.
+
+
+Prepared to share learnings about:
+----------------------------------------
+i. Which aspects of the project were most challenging to document:
+   - Explaining the multi-factor priority scoring math (base weights, due date brackets, completion degradation penalties, hot-tag boosts, recency) in simple terms, and describing the 5-element differential tuple returned by `merge_task_lists`.
+
+ii. How prompts were adjusted to get better results:
+   - Customized Prompt 1 to require explicit CLI command flags and directory trees, Prompt 2 to mandate troubleshooting tables, and Prompt 3 to cover data serialization and sync edge cases.
+
+iii. What was learned about document structure and organization:
+   - Separating technical overviews (`README.md`), user workflows (`USER_GUIDE.md`), and quick issue resolution (`FAQ.md`) keeps user documentation scannable and maintainable.
+
+iv. How would this approach could be incorporated into development workflow:
+   - Standardize a 3-part documentation template (`README`, `USER_GUIDE`, `FAQ`) for all repository modules, updated during feature pull requests to prevent documentation drift.
