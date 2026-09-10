@@ -1,0 +1,99 @@
+Exercise: Performance Optimization Challenge
+=============================================
+
+Selected scenario
+-----------------
+
+1. Selected the "Slow Code Analysis" scenario using Python. The relevant code
+is inventory_analysis.py, which finds pairs of products whose combined price is
+within a target range.
+
+2. Used the corresponding AI prompt from the "Identifying Performance Bottlenecks" section to analyze the performance issue
+2.1. Analyzing the performance issue
+--------------------------------
+
+The original find_product_combinations implementation used two nested loops.
+It examined both (product1, product2) and (product2, product1), skipped only
+self-pairs, and then called any() over the results list to prevent duplicate
+pairs.
+
+The main bottlenecks were:
+
+* The nested loops perform O(N^2) pair comparisons.
+* The duplicate check can scan O(K) existing results for every matching pair.
+* The same pair is therefore considered twice before the duplicate check rejects
+	one copy.
+* Sorting the final K results adds O(K log K) work.
+
+The original overall behavior is approximately O(N^2 * K), with additional
+memory for the result list. This becomes impractical as the inventory grows.
+
+2.2. Optimization approach
+------------------------
+
+The optimized implementation uses the following approach:
+
+2.2.1. Sort the products by price once in O(N log N).
+2.2.2. Store the sorted prices in a parallel list so binary search can be used.
+2.2.3. For each first product, calculate the minimum and maximum valid price for
+	 the second product.
+2.2.4. Use bisect_left() and bisect_right() to find only the valid index window.
+2.2.5. Start the second-product index at i + 1. This visits every unordered pair
+	 once and prevents self-pairs, so a separate duplicate scan is unnecessary.
+2.2.6. Sort the matches by price difference before returning them.
+
+The resulting complexity is O(N log N + K + K log K), commonly summarized as
+O(N log N + K log K), where K is the number of returned combinations. The
+result list requires O(K) memory.
+
+3. Implementation completed
+---------------------------
+
+The optimized implementation is in inventory_analysis.py. It preserves the
+existing function signature and result format. It also uses time.perf_counter()
+for the command-line benchmark because it is appropriate for elapsed-duration
+measurement.
+
+Correctness coverage was added in test_inventory_analysis.py. The tests compare
+the optimized function with a brute-force oracle across deterministic randomized
+inventories and verify that a single product cannot be paired with itself.
+
+4. Performance measurements
+----------------------------
+
+Both implementations were run with the same deterministic 500-product input,
+target price 500, and price margin 50:
+
+												 Runtime       Results
+Original implementation  44.521325 s    24,041
+Optimized implementation  0.018540 s    24,041
+
+The optimized implementation was approximately 2,400 times faster in this
+measurement and returned the same combinations as the original implementation.
+The exact ratio varies with hardware, Python version, inventory size, and the
+number of matching pairs.
+
+The 5,000-product benchmark in inventory_analysis.py found 2,432,833
+combinations in approximately 1.81 seconds on the current workspace. Running
+the original algorithm at that size was not used as a benchmark because its
+duplicate scan makes the run unnecessarily expensive.
+
+Validation results:
+
+* 2 focused unittest tests passed.
+* Both Python files compiled successfully with py_compile.
+* The editor reported no Python diagnostics.
+
+5. Key learnings
+----------------
+
+* Profiling and comparing equivalent inputs exposes the real cost of nested
+	iteration and repeated linear duplicate checks.
+* Sorting creates an opportunity to use binary search and narrow the candidate
+	range before doing pair work.
+* Choosing j > i is a simple structural guarantee that removes duplicate pairs
+	instead of detecting duplicates after they have already been generated.
+* Performance changes must preserve output correctness; matching result counts
+	and brute-force comparisons provide that check.
+* Benchmark results should include the input size, target parameters, result
+	count, and environment-dependent caveat so they can be reproduced honestly.

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from models import TaskStatus, TaskPriority
 
-def calculate_task_score(task):
+def calculate_task_score(task, current_user=None):
     """Calculate a priority score for a task based on multiple factors."""
     # Base priority weights
     priority_weights = {
@@ -37,6 +37,9 @@ def calculate_task_score(task):
     if any(tag in ["blocker", "critical", "urgent"] for tag in task.tags):
         score += 8
 
+    if current_user is not None and getattr(task, "assigned_to", None) == current_user:
+        score += 12
+
     # Boost score for recently updated tasks
     days_since_update = (datetime.now() - task.updated_at).days
     if days_since_update < 1:
@@ -44,14 +47,16 @@ def calculate_task_score(task):
 
     return score
 
-def sort_tasks_by_importance(tasks):
+def sort_tasks_by_importance(tasks, current_user=None):
     """Sort tasks by calculated importance score (highest first)."""
-    task_scores = [(calculate_task_score(task), task) for task in tasks]
+    task_scores = [
+        (calculate_task_score(task, current_user), task) for task in tasks
+    ]
     # Use key parameter to tell sorted() to only compare the scores (first element of tuple)
     sorted_tasks = [task for _, task in sorted(task_scores, key=lambda x: x[0], reverse=True)]
     return sorted_tasks
 
-def get_top_priority_tasks(tasks, limit=5):
+def get_top_priority_tasks(tasks, limit=5, current_user=None):
     """Return the top N priority tasks."""
-    sorted_tasks = sort_tasks_by_importance(tasks)
+    sorted_tasks = sort_tasks_by_importance(tasks, current_user)
     return sorted_tasks[:limit]

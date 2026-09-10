@@ -25,6 +25,7 @@ class TaskDecoder(json.JSONDecoder):
         if 'id' in obj and 'title' in obj:
             task = Task(obj['title'], obj.get('description', ''))
             task.id = obj['id']
+            task.assigned_to = obj.get('assigned_to')
             task.priority = TaskPriority(obj['priority'])
             task.status = TaskStatus(obj['status'])
 

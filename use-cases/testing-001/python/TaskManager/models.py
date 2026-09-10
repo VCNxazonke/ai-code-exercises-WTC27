@@ -17,7 +17,7 @@ class TaskStatus(Enum):
 
 class Task:
     def __init__(self, title, description="", priority=TaskPriority.MEDIUM,
-                 due_date=None, tags=None):
+                 due_date=None, tags=None, assigned_to=None):
         self.id = str(uuid.uuid4())
         self.title = title
         self.description = description
@@ -26,6 +26,7 @@ class Task:
         self.created_at = datetime.now()
         self.updated_at = self.created_at
         self.due_date = due_date
+        self.assigned_to = assigned_to
         self.completed_at = None
         self.tags = tags or []
 

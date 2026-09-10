@@ -2,13 +2,13 @@
 Inventory Analysis Module - Performance Optimized Version.
 
 Initial Complexity: O(N^2 * K) due to nested loops over all pairs and linear duplicate check `any()`.
-Optimized Complexity: O(N log N + K) using price sorting, binary search windowing (`bisect`),
+Optimized Complexity: O(N log N + K log K) using price sorting, binary search windowing (`bisect`),
 and index offset loops (j starting at i + 1) to eliminate duplicate checks entirely.
 """
 
-import time
-import random
 import bisect
+import random
+import time
 
 def find_product_combinations(products, target_price, price_margin=10):
     """
@@ -85,9 +85,9 @@ if __name__ == "__main__":
 
     # Benchmark Optimized Version on 5,000 products
     print(f"Finding product combinations for {len(product_list)} products...")
-    start_time = time.time()
+    start_time = time.perf_counter()
     combinations = find_product_combinations(product_list, 500, 50)
-    end_time = time.time()
+    end_time = time.perf_counter()
 
     print(f"Found {len(combinations)} product combinations")
     print(f"Optimized Execution time: {end_time - start_time:.4f} seconds")

@@ -70,4 +70,11 @@ python cli.py stats
 
 ### Run the Tests
 
-TODO
+Run the priority unit and integration tests from this folder:
+
+```bash
+python -m unittest -v test_task_priority
+```
+
+The testing exercise plan, implementation notes, and reflection are in
+`TESTING_SUBMISSION.md`.

@@ -10,7 +10,7 @@ class TaskManager:
         self.storage = TaskStorage(storage_path)
 
     def create_task(self, title, description="", priority_value=2,
-                   due_date_str=None, tags=None):
+                   due_date_str=None, tags=None, assigned_to=None):
         priority = TaskPriority(priority_value)
         due_date = None
         if due_date_str:
@@ -20,7 +20,7 @@ class TaskManager:
                 print("Invalid date format. Use YYYY-MM-DD")
                 return None
 
-        task = Task(title, description, priority, due_date, tags)
+        task = Task(title, description, priority, due_date, tags, assigned_to)
         task_id = self.storage.add_task(task)
         return task_id
 
