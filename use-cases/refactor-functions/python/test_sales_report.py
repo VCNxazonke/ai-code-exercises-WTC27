@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime
-from sales_report import generate_sales_report
+from sales_report import generate_sales_report, group_sales_data, render_report
 
 class TestSalesReport(unittest.TestCase):
     def setUp(self):
@@ -160,6 +160,33 @@ class TestSalesReport(unittest.TestCase):
         
         self.assertEqual(result['message'], 'No data matches the specified criteria')
         self.assertEqual(result['data'], [])
+
+    def test_list_filter_and_grouping_strategy(self):
+        """List filters and the grouping helper should compose correctly."""
+        result = generate_sales_report(
+            self.sample_data,
+            filters={'region': ['North', 'East']},
+            grouping='region',
+            output_format='json'
+        )
+
+        self.assertEqual(result['summary']['transaction_count'], 3)
+        self.assertEqual(result['grouping']['groups']['North']['total'], 430.00)
+        self.assertEqual(result['grouping']['groups']['East']['count'], 1)
+
+    def test_report_renderer_strategy_returns_json_data(self):
+        """The output factory should select the JSON renderer."""
+        report_data = {'report_type': 'summary', 'summary': {}}
+
+        self.assertIs(render_report(report_data, 'json', False), report_data)
+
+    def test_grouping_helper_uses_unknown_for_missing_fields(self):
+        """Grouping should keep transactions without the field under Unknown."""
+        grouped_data = group_sales_data(
+            [{'amount': 10, 'date': '2023-01-01'}], 'category'
+        )
+
+        self.assertEqual(grouped_data['Unknown']['count'], 1)
 
 if __name__ == '__main__':
     unittest.main()
