@@ -68,7 +68,7 @@ This passed successfully with 11 tests passing.
 The code is easier to maintain because each report type has a clear, dedicated implementation instead of being buried in one long conditional block.
 
 ### 2. Easier future changes
-If a new report type is added later, the developer only needs to register a new strategy rather than modify the central decision logic again.
+If a new report type is added later, one only needs to register a new strategy rather than modify the central decision logic again.
 
 ### 3. Better testability
 Each behavior can be tested independently because the strategy functions are isolated and named clearly.

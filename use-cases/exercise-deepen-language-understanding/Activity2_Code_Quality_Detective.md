@@ -26,10 +26,10 @@ The code review inspected an old Python data processing module containing monoli
 ## Key Learnings (3rd Person Perspective)
 
 ### 1. The Value of Guard Clauses over Deep Nesting
-The developer observed that replacing deeply nested `if/else` checks with early return guard clauses significantly simplifies reading order and keeps the main happy path at the root indentation level.
+Observed that replacing deeply nested `if/else` checks with early return guard clauses significantly simplifies reading order and keeps the main happy path at the root indentation level.
 
 ### 2. Parameterized Queries for Security and Performance
-The developer learned that raw string concatenation in SQL queries introduces critical security vulnerabilities and prevents database query execution plan caching. Enforcing parameterized query interfaces protects against injection and improves database execution speed.
+Learnt that raw string concatenation in SQL queries introduces critical security vulnerabilities and prevents database query execution plan caching. Enforcing parameterized query interfaces protects against injection and improves database execution speed.
 
 ### 3. Centralized Configuration Management
 The review highlighted that hardcoding settings directly inside business logic hinders environment switching (testing vs. production). Moving configuration to environment variables or dedicated config objects makes the codebase configurable and secure.
